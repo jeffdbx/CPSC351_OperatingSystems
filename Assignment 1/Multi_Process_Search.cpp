@@ -1,4 +1,3 @@
-//==========================================================================================================
 //
 // Jeff Bohlin
 // September 19th, 2012
@@ -13,159 +12,173 @@
 // penguin 5" will search an input file for 'penguin' using 5 child processes.  If the string is found,
 // then the program outputs a success message.
 //
-//==========================================================================================================
 
-#include <sys/wait.h>                                           // Needed for wait().
-#include <stdlib.h>                                             // Needed for general utilities (atoi, etc.)
-#include <signal.h>                                             // Needed for process events.
-#include <unistd.h>                                             // Needed for fork().
+#include <sys/wait.h>   // Needed for wait().
+#include <stdlib.h>     // Needed for general utilities (atoi, etc.)
+#include <signal.h>     // Needed for process events.
+#include <unistd.h>     // Needed for fork().
 #include <iostream>
 #include <vector>
 #include <fstream>
 #include <string>
 
-using namespace std;
-
-void getData(ifstream &myFile, vector<string> &myStrings,       // This function opens a file and populates a vector with strings. It
-             char *filename, string key)                        //    takes the input file variable, myStrings vector, file name, and
-{                                                               //    string to search for, as parameters.
-    string temp;
+// This function opens a file and populates a vector with strings. It takes the input file
+// variable, myStrings vector, file name, and string to search for, as parameters.
+void getData(std::ifstream &myFile, std::vector<std::string> &myStrings, char *filename, std::string key)
+{																
+    std::string temp;
     myFile.open(filename);
 
-    if(myFile.is_open())
+    if (myFile.is_open())
     {
-       while(myFile >> temp)
-       {
-          myStrings.push_back(temp);                            // Put the string into the vector.
-       }
-       myFile.close();
+        while (myFile >> temp)
+        {
+            myStrings.push_back(temp);
+        }
+        myFile.close();
     }
     else
     {
-       perror("\nFile");
-       exit(EXIT_FAILURE);
+        perror("\nFile");
+        exit(EXIT_FAILURE);
     }
-
 }
 
-bool compareString(string x, string y)                          // This function simply compares 2 strings to see if they
-{                                                               //    are a match and then returns true or false.
+bool compareString(std::string x, std::string y)
+{																
     return (x == y) ? true : false;
 }
 
-void murderChildren(int *childPIDs, int numChildren)            // This function kills all of the remaining children,
-{                                                               //    according to their PID number.
-    for(int i = 0; i < numChildren; i++)
+// This function kills all of the remaining children, according to their PID number.
+void murderChildren(int *childPIDs, int numChildren)			
+{  
+    for (int i = 0; i < numChildren; i++)
     {
         kill(childPIDs[i], SIGKILL);
     }
 }
 
-int main(int argc, char* argv[] )
+int main(int argc, char* argv[])
 {
-    if (argc != 4)                                              // There should be 4 parameters for correct execution.
-    {                                                           //    (3 entered by the user, and argv[0] which is simply
-                                                                //    the path where this program is stored).
-       cout << "\nRun the program with the following command: ./multi-search <FILENAME> <KEY> <NUMBER OF PROCESSES>.\n"
-              "   <KEY> being the string to search for.\n"
-              "   For example: \'./multi-search urls.txt abcdef 10\' will search the file for \'abcdef\' using 10 child\n"
-              "   processes.\n\n";
-
-       exit(EXIT_FAILURE);
-    }
-
-    unsigned int numChildren = atoi(argv[3]);                   // The number of child processes to be created.
-    int exit_status;                                            // The exit_status returned by each child.
-    int *childPIDs;                                             // An array to hold each child' PID.
-    string key(argv[2]);                                        // The string to search for (convert from a char*).
-    pid_t pid;                                                  // The current PID.
-    vector<string> myStrings;                                   // A dynamic vector to hold all of the input strings.
-    ifstream myFile;                                            // File variable.
-
-    getData(myFile, myStrings, argv[1], key);                   // Call function to retrieve input data.
-
-    unsigned int const arraySize = myStrings.size();            // Store the size of the vector in a variable to reduce overhead.
-    childPIDs = new int[arraySize];                             // Create a new array to hold the PID of each child.
-
-    cout << endl;
-
-    if(numChildren < 1 || numChildren > arraySize)              // Check for valid input.
+    // There should be 4 parameters for correct execution. (3 entered by the user, and argv[0] which is 
+    // simply the path where this program is stored).
+    if (argc != 4) 	
     {
-        cout << arraySize << " strings were read-in from the input file." << endl;
-        cout << "The number of child processes must be between 1 and " << arraySize << ".\n" << endl;
+        std::cout <<    "\nRun the program with the following command: ./multi-search <FILENAME> <KEY> <NUMBER OF PROCESSES>.\n"
+                        "   <KEY> being the string to search for.\n"
+                        "   For example: \'./multi-search urls.txt abcdef 10\' will search the file for \'abcdef\' using 10 child\n"
+                        "   processes.\n\n";
+
         exit(EXIT_FAILURE);
     }
 
-    int n = arraySize / numChildren;                            // Number of strings the children will check.
-    int r = arraySize % numChildren;                            // Remainder of strings the parent will check.
+    unsigned int numChildren = atoi(argv[3]);   // The number of child processes to be created.
+    int exit_status;                            // The exit_status returned by each child.
+    int *childPIDs;                             // An array to hold each child' PID.
+    std::string key(argv[2]);                   // The string to search for (convert from a char*).
+    pid_t pid;                                  // The current PID.
+    std::vector<std::string> myStrings;         // A dynamic vector to hold all of the input strings.
+    std::ifstream myFile;                       // File variable.
 
-    cout << "Searching " << argv[1] << " for \'" << key << "\'..." << endl;
+    // Call function to retrieve input data.
+    getData(myFile, myStrings, argv[1], key);					
 
-    if(r != 0)                                                  // Only the parent will run this code; she checks for
-    {                                                           //    any strings that were not evenly distributed
-                                                                //    amongst the children.
-       for(int i = 0; i < r; i++)
-       {
-           if(compareString(myStrings[(n*numChildren)+i], key)) // Check if the parent has found the string. "(n*numChildren)" tells
-           {                                                    //    the parent where the start index is of the remainder strings
-                                                                //    (stored at the end of the array). "+i" just means check the
-                                                                //    the string at the current iteration of the loop.
+    // Store the size of the vector in a variable to reduce overhead.
+    unsigned int const arraySize = myStrings.size();	
 
-               cout << "The Parent found \'" << key << "\', no need to fork any children!\n" << endl;
-               exit(EXIT_SUCCESS);
+    // Create a new array to hold the PID of each child.
+    childPIDs = new int[arraySize];     						
 
-           }
-       }
+    std::cout << std::endl;
+
+    if (numChildren < 1 || numChildren > arraySize)
+    {
+        std::cout << arraySize << " strings were read-in from the input file." << std::endl;
+        std::cout << "The number of child processes must be between 1 and " << arraySize << ".\n" << std::endl;
+        exit(EXIT_FAILURE);
     }
 
-    for(unsigned int i = 0; i < numChildren; i++)
-    {
-       pid = fork();                                            // Create a new child process while saving the PID.
+    int n = arraySize / numChildren;    // Number of strings the children will check.
+    int r = arraySize % numChildren;    // Remainder of strings the parent will check.
 
-       if (pid == -1)                                           // There was an error.
-       {
-           perror("\nFork");
-           exit(EXIT_FAILURE);
-       }
+    std::cout << "Searching " << argv[1] << " for \'" << key << "\'..." << std::endl;
 
-       if (pid == 0)                                            // Child Process.
-       {
-            for(int j = 0; j < n; j++)                          // Loop as many times as there are strings to be checked
-            {                                                   //    per child.
-                if(compareString(myStrings[(i*n)+j], key))      // If the current string is a match, then return "true" to
-                    exit(0);                                    //    the parent. "(i*n)" is the index where the current child
-                                                                //    needs to start searching in the myStrings array. "+j"
-                                                                //    just means check the string at the current iteration of
-                                                                //    the loop.
+    // Only the parent will run this code; she checks for any strings that were not evenly distributed
+    // amongst the children.
+    if (r != 0)													
+    {															
+        for (int i = 0; i < r; i++)
+        {
+            // Check if the parent has found the string. "(n*numChildren)" tells the parent where the
+            // start index is of the remainder strings (stored at the end of the array). "+i" just means 
+            // check the string at the current iteration of the loop.
+            if (compareString(myStrings[(n*numChildren) + i], key))	
+            {
+                std::cout << "The Parent found \'" << key << "\', no need to fork any children!\n" << std::endl;
+                exit(EXIT_SUCCESS);
             }
-            exit(1);                                            // Or else return "false" to the parent.
-       }
+        }
+    }
 
-       if (pid > 0)                                             // Parent process.
-       {
-           childPIDs[i] = pid;                                  // Save the current child PID.
-       }
-   }
+    for (unsigned int i = 0; i < numChildren; i++)
+    {
+        // Create a new child process while saving the PID.
+        pid = fork();											
 
-   if(pid > 0)                                                  // Parent process.
-   {
-       for(unsigned int i = 0; i < numChildren; i++)
-       {
-           if (wait(&exit_status) == -1)                        // Issue a wait command for each child.  Then, when the child
-           {                                                    //    terminates, save the exit code of the child in "exit_status."
-               perror("\nChild");
-               exit(EXIT_FAILURE);
-           }
-           if(WEXITSTATUS(exit_status) == 0)                    // If the child returns 0, then the string was found. If the child
-           {                                                    //    returns 1, then the string was not found.
-              cout << "\n\'" << key << "\' was found!\n" << endl;
-              murderChildren(childPIDs, numChildren);           // Kill any remaining children that may still be running.
-              exit(EXIT_SUCCESS);
-           }
-       }
-       cout << "\nNo string found.\n" << endl;
-   }
-   exit(EXIT_SUCCESS);
+        // There was an error.
+        if (pid == -1)											
+        {
+            perror("\nFork");
+            exit(EXIT_FAILURE);
+        }
+        // Child Process.
+        if (pid == 0)											
+        {
+            // Loop as many times as there are strings to be checked per child. If the current string is a match,
+            // then return "true" to the parent. "(i*n)" is the index where the current child needs to start
+            // searching in the myStrings array. "+j" just means check the string at the current iteration of
+            // the loop.
+            for (int j = 0; j < n; j++)							
+            {													
+                if (compareString(myStrings[(i*n) + j], key)) 
+                    exit(0);  
+            }
+            // Or else return "false" to the parent.
+            exit(1);											
+        }
+        // Parent process.
+        if (pid > 0)												
+        {
+            // Save the current child PID.
+            childPIDs[i] = pid;									
+        }
+    }
+    // Parent process.
+    if (pid > 0)													
+    {
+        for (unsigned int i = 0; i < numChildren; i++)
+        {
+            // Issue a wait command for each child.  Then, when the child terminates, save the exit
+            // code of the child in "exit_status."
+            if (wait(&exit_status) == -1)						
+            {													
+                perror("\nChild");
+                exit(EXIT_FAILURE);
+            }
+            // If the child returns 0, then the string was found. If the child returns 1, then
+            // the string was not found.
+            if (WEXITSTATUS(exit_status) == 0)					
+            {													
+                std::cout << "\n\'" << key << "\' was found!\n" << std::endl;
+                // Kill any remaining children that may still be running.
+                murderChildren(childPIDs, numChildren);			
+                exit(EXIT_SUCCESS);
+            }
+        }
+
+        std::cout << "\nNo string found.\n" << std::endl;
+    }
+    exit(EXIT_SUCCESS);
 }
 
 
