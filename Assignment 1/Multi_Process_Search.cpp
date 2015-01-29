@@ -22,41 +22,14 @@
 #include <fstream>
 #include <string>
 
-// This function opens a file and populates a vector with strings. It takes the input file
-// variable, myStrings vector, file name, and string to search for, as parameters.
-void getData(std::ifstream &myFile, std::vector<std::string> &myStrings, char *filename, std::string key)
-{																
-    std::string temp;
-    myFile.open(filename);
+// This function opens a file and populates a vector with strings.
+void getData(std::ifstream &myFile, std::vector<std::string> &myStrings, char *filename, std::string key);
 
-    if (myFile.is_open())
-    {
-        while (myFile >> temp)
-        {
-            myStrings.push_back(temp);
-        }
-        myFile.close();
-    }
-    else
-    {
-        perror("\nFile");
-        exit(EXIT_FAILURE);
-    }
-}
-
-bool compareString(std::string x, std::string y)
-{																
-    return (x == y) ? true : false;
-}
+// A function to compare 2 strings
+bool compareString(std::string x, std::string y);
 
 // This function kills all of the remaining children, according to their PID number.
-void murderChildren(int *childPIDs, int numChildren)			
-{  
-    for (int i = 0; i < numChildren; i++)
-    {
-        kill(childPIDs[i], SIGKILL);
-    }
-}
+void murderChildren(int *childPIDs, int numChildren);
 
 int main(int argc, char* argv[])
 {
@@ -181,4 +154,39 @@ int main(int argc, char* argv[])
     exit(EXIT_SUCCESS);
 }
 
+// This function opens a file and populates a vector with strings. It takes the input file
+// variable, myStrings vector, file name, and string to search for, as parameters.
+void getData(std::ifstream &myFile, std::vector<std::string> &myStrings, char *filename, std::string key)
+{
+    std::string temp;
+    myFile.open(filename);
 
+    if (myFile.is_open())
+    {
+        while (myFile >> temp)
+        {
+            myStrings.push_back(temp);
+        }
+        myFile.close();
+    }
+    else
+    {
+        perror("\nFile");
+        exit(EXIT_FAILURE);
+    }
+}
+
+// A function to compare 2 strings
+bool compareString(std::string x, std::string y)
+{
+    return (x == y) ? true : false;
+}
+
+// This function kills all of the remaining children, according to their PID number.
+void murderChildren(int *childPIDs, int numChildren)
+{
+    for (int i = 0; i < numChildren; i++)
+    {
+        kill(childPIDs[i], SIGKILL);
+    }
+}

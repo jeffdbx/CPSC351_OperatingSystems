@@ -59,10 +59,10 @@ int childToParentPipe[2];           // The pipe for child-to-parent communicatio
 const string hashProgs[] = {"md5sum", "sha1sum", "sha224sum", "sha256sum", "sha384sum", "sha512sum"};
 
 // Simple function to check if a file exists.
-bool file_exists(const char *);
+bool file_exists(const char *filename);
 
 // The function called by a child.
-void computeHash(const string &);
+void computeHash(const string &hashProgName);
 
 int main(int argc, char **argv)
 {
