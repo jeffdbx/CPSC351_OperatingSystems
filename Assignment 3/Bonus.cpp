@@ -75,7 +75,7 @@ int n;
 int main(int argc, char** argv)
 {
     // There should be 3 parameters for correct execution. (2 entered by the user,
-     * and argv[0] which is simply the path where this program is stored). 
+    // and argv[0] which is simply the path where this program is stored). 
     if (argc != 3)
     {
         cout << "\nTo run this program, use the following command:\n"
