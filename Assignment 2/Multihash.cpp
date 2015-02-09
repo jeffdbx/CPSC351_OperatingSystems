@@ -25,7 +25,6 @@
 //	8.  The process repeats until all available pipes in the fd_set have been read.
 //	9.  The parent terminates after all hashes have been computed.
 //
-// Note: This file is best viewed in gedit with "tab width" set to 4 (Edit > Preferences > Editor).
 //
 // Credits: Professor Gofman's templates were used as the skeleton for this program. Also, the following
 // webpages were used as reference to complete this assignment:
